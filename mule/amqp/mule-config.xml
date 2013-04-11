@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+      xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz"
+      xmlns:test="http://www.mulesoft.org/schema/mule/test"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xsi:schemaLocation="
+       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+       http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+       http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/current/mule-quartz.xsd
+       http://www.mulesoft.org/schema/mule/test http://www.mulesoft.org/schema/mule/test/current/mule-test.xsd
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+    <amqp:connector name="amqpConnector1"
+                    virtualHost="mule-test"
+		    port="5670"
+                    username="mule"
+                    password="mule"
+		    activeDeclarationsOnly="true"
+		    mandatory="true"/>
+
+    <amqp:connector name="amqpConnector2"
+                    virtualHost="mule-test"
+                    port="5670"
+                    username="mule"
+                    password="mule"
+                    activeDeclarationsOnly="true"
+                    mandatory="true"/>
+
+    <flow name="amqpOutBound">
+        <quartz:inbound-endpoint jobName="eventTimer" repeatInterval="10">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+
+        <amqp:outbound-endpoint queueName="testQ2"
+                                connector-ref="amqpConnector1"/>
+    </flow>
+
+    <flow name="amqpDeQueueService">
+        <amqp:inbound-endpoint queueName="testQ2"
+                           connector-ref="amqpConnector2" />
+        <test:component />
+    </flow>
+
+</mule>

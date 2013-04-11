@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: org.mule.example.jersey.test.JerseyLdapTestCase
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.617 sec

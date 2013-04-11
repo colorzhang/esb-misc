@@ -1,0 +1,74 @@
+dn: dc=it,dc=mycompany,dc=com
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+dc: it
+o: MuleSoft
+
+dn:ou=groups,dc=it,dc=mycompany,dc=com
+objectClass: organizationalUnit
+objectClass: top
+description: groups
+ou: groups
+
+dn: ou=people,dc=it,dc=mycompany,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: people
+
+dn: cn=admins,ou=groups,dc=it,dc=mycompany,dc=com
+objectClass: extensibleObject
+objectClass: groupOfNames
+objectClass: top
+cn: admins
+description: admins group
+member: uid=jdoe,ou=people,dc=it,dc=mycompany,dc=com
+
+dn: cn=programmers,ou=groups,dc=it,dc=mycompany,dc=com
+objectClass: extensibleObject
+objectClass: groupOfNames
+objectClass: top
+cn: programmers
+description: programisci hudsona
+member: uid=kmoe,ou=people,dc=it,dc=mycompany,dc=com
+member: uid=jhudson,ou=people,dc=it,dc=mycompany,dc=com
+
+dn: uid=jdoe,ou=people,dc=it,dc=mycompany,dc=com
+objectClass: account
+objectClass: extensibleObject
+objectClass: uidObject
+objectClass: userSecurityInformation
+objectClass: top
+email: jdoe@mycompany.com
+member: cn=admins,ou=groups,dc=it,dc=mycompany,dc=com
+name: John
+sn: Doe
+uid: jdoe
+userPassword: 123
+
+dn: uid=kmoe,ou=people,dc=it,dc=mycompany,dc=com
+objectClass: account
+objectClass: extensibleObject
+objectClass: uidObject
+objectClass: userSecurityInformation
+objectClass: top
+email: kmoe@mycompany.com
+member: cn=programmers,ou=groups,dc=it,dc=mycompany,dc=com
+name: Kate
+sn: Moe
+uid: kmoe
+userPassword: {MD5}ICy5YqxZB1uWSwcVLSNLcA==
+
+dn: uid=jhudson,ou=people,dc=it,dc=mycompany,dc=com
+objectClass: account
+objectClass: extensibleObject
+objectClass: uidObject
+objectClass: userSecurityInformation
+objectClass: top
+email: jhudson@mycompany.com
+member: cn=programmers,ou=groups,dc=it,dc=mycompany,dc=com
+name: Jane
+sn: Hudson
+uid: jhudson
+userPassword: {MD5}ICy5YqxZB1uWSwcVLSNLcA==
+

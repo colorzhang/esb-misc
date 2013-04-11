@@ -1,0 +1,95 @@
+version: 1
+
+dn: dc=it,dc=mycompany,dc=com
+objectClass: organization
+objectClass: dcObject
+objectClass: top
+dc: it
+o: MuleSoft
+
+dn: ou=groups,dc=it,dc=mycompany,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: groups
+description: groups
+
+dn: ou=people,dc=it,dc=mycompany,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: people
+
+dn: cn=admins,ou=groups,dc=it,dc=mycompany,dc=com
+objectClass: extensibleObject
+objectClass: groupOfNames
+objectClass: top
+cn: admins
+member: uid=jdoe,ou=people,dc=it,dc=mycompany,dc=com
+description: admins group
+
+dn: cn=programmers,ou=groups,dc=it,dc=mycompany,dc=com
+objectClass: extensibleObject
+objectClass: groupOfNames
+objectClass: top
+cn: programmers
+member: uid=kmoe,ou=people,dc=it,dc=mycompany,dc=com
+member: uid=jhudson,ou=people,dc=it,dc=mycompany,dc=com
+description: programisci hudsona
+
+dn: uid=jdoe,ou=people,dc=it,dc=mycompany,dc=com
+objectClass: extensibleObject
+objectClass: uidObject
+objectClass: account
+objectClass: userSecurityInformation
+objectClass: top
+uid: jdoe
+email: jdoe@mycompany.com
+member: cn=admins,ou=groups,dc=it,dc=mycompany,dc=com
+name: John
+sn: Doe
+userPassword:: MTIz
+
+dn: uid=kmoe,ou=people,dc=it,dc=mycompany,dc=com
+objectClass: extensibleObject
+objectClass: uidObject
+objectClass: account
+objectClass: userSecurityInformation
+objectClass: top
+uid: kmoe
+email: kmoe@mycompany.com
+member: cn=programmers,ou=groups,dc=it,dc=mycompany,dc=com
+name: Kate
+sn: Moe
+userPassword:: e1NIQX1xVXFQNWN5eG02WWNUQWh6MDVIcGg1Z3Z1OU09
+
+dn: uid=jhudson,ou=people,dc=it,dc=mycompany,dc=com
+objectClass: extensibleObject
+objectClass: uidObject
+objectClass: account
+objectClass: userSecurityInformation
+objectClass: top
+uid: jhudson
+email: jhudson@mycompany.com
+member: dc=it,dc=mycompany,dc=com
+name: Jane
+sn: Hudson
+userPassword:: e1NIQX1xVXFQNWN5eG02WWNUQWh6MDVIcGg1Z3Z1OU09
+
+dn: uid=test,ou=people,dc=it,dc=mycompany,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn: jas
+sn: test
+uid: test
+userPassword:: e1NIQX1xVXFQNWN5eG02WWNUQWh6MDVIcGg1Z3Z1OU09
+
+dn: cn=manager,ou=people,dc=it,dc=mycompany,dc=com
+objectClass: organizationalPerson
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+cn: manager
+sn: Big Boss
+userpassword:: c2VjcmV0
+

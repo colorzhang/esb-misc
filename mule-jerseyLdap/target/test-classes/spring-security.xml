@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/security
+		http://www.springframework.org/schema/security/spring-security-3.0.xsd
+		http://www.mulesoft.org/schema/mule/core
+		http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd">
+		
+  
+	   <bean class="org.springframework.security.ldap.DefaultSpringSecurityContextSource"
+          id="initialDirContextFactory">
+		      <constructor-arg value="ldap://localhost:10389/dc=it,dc=mycompany,dc=com"/>
+		      <property name="userDn">
+        <!-- 
+			<value>ou=groups,dc=it,dc=mycompany,dc=com</value>
+            <value>cn=admins,dc=it,dc=mycompany,dc=com</value>
+         -->
+            <value>uid=admin,ou=system</value>
+		      </property>
+		      <property name="password">
+			         <value>secret</value>
+
+		      </property>
+	   </bean>
+	
+	   <bean class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider"
+          id="authenticationProvider">
+	       <constructor-arg>
+		          <bean class="org.springframework.security.ldap.authentication.BindAuthenticator">
+			             <constructor-arg ref="initialDirContextFactory"/>
+			             <property name="userDnPatterns">
+				                <list>
+					                   <value>uid={0},ou=people</value>
+                        <!-- 
+                    <value>uid={0},ou=people,dc=it,dc=mycompany,dc=com</value>
+                 -->
+				</list>
+			             </property>
+		          </bean>
+	       </constructor-arg>
+	       <constructor-arg>
+		          <bean class="org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator">
+                    <constructor-arg ref="initialDirContextFactory"/>
+                    <constructor-arg value="ou=groups"/>
+                    <property name="groupRoleAttribute" value="cn"/>
+
+                    <property name="convertToUpperCase" value="true"/>
+		          </bean>
+	       </constructor-arg>
+    </bean>
+	
+	
+    <!--	<bean id="authenticationProvider"-->
+<!--		class="org.springframework.security.providers.ldap.LdapAuthenticationProvider"-->
+<!--		lazy-init="false">-->
+<!--		<constructor-arg>-->
+<!--			<bean-->
+<!--				class="org.springframework.security.providers.ldap.authenticator.BindAuthenticator">-->
+<!--				<constructor-arg>-->
+<!--					<ref local="initialDirContextFactory" />-->
+
+<!--				</constructor-arg>-->
+<!--				<property name="userDnPatterns">-->
+<!--					<list>-->
+<!--						<value>uid={0},ou=people</value>-->
+<!--					</list>-->
+<!--				</property>-->
+<!--			</bean>-->
+<!--		</constructor-arg>-->
+<!--		<constructor-arg>-->
+<!--			<bean-->
+<!--				class="org.springframework.security.ldap.populator.DefaultLdapAuthoritiesPopulator"-->
+<!--				lazy-init="false">-->
+<!--				<constructor-arg>-->
+<!--					<ref local="initialDirContextFactory" />-->
+<!--				</constructor-arg>-->
+<!--				<constructor-arg>-->
+<!--					<value>ou=groups</value>-->
+
+<!--				</constructor-arg>-->
+<!--				<property name="groupRoleAttribute">-->
+<!--					<value>ou</value>-->
+<!--				</property>-->
+<!--				<property name="searchSubtree">-->
+<!--					<value>true</value>-->
+<!--				</property>-->
+<!--				<property name="rolePrefix">-->
+<!--					<value>ROLE_</value>-->
+<!--				</property>-->
+<!--				<property name="convertToUpperCase">-->
+<!--					<value>true</value>-->
+<!--				</property>-->
+<!--			</bean>-->
+<!--		</constructor-arg>-->
+<!--	</bean>-->
+	
+    
+    <!-- 
+	
+	<bean id="filterSecurityInterceptor" class="org.springframework.security.intercept.web.FilterSecurityInterceptor">
+
+	  <property name="authenticationManager" ref="authenticationManager"/>
+	  <property name="accessDecisionManager" ref="accessDecisionManager"/>
+	  <property name="objectDefinitionSource">
+	    <security:filter-invocation-definition-source>
+	      <security:intercept-url pattern="/creditcard/**" access="ROLE_ADMINS"/>
+	    </security:filter-invocation-definition-source>                
+	  </property>
+	</bean>
+     -->
+
+    <!-- This bean will do the magic of applying the interceptor to the myEcho bean. -->
+    <bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator"
+          id="autoProxyCreator">
+        <property name="interceptorNames">
+            <list>
+                <value>myComponentSecurity</value>
+            </list>
+        </property>
+        <property name="beanNames">
+            <list>
+                <value>sayHelloWithUri</value>
+            </list>
+        </property>
+        <property name="proxyTargetClass" value="true"/>
+    </bean>
+
+    <!-- Since we are intercepting method calls on a class, we will need the cglib jar in the classpath -->
+    <bean class="org.springframework.security.access.intercept.aopalliance.MethodSecurityInterceptor"
+          id="myComponentSecurity">
+        <property name="authenticationManager" ref="authenticationManager"/>
+        <property name="accessDecisionManager" ref="accessDecisionManager"/>
+        <property name="securityMetadataSource"
+                  value="org.mule.transport.jersey.HelloWorldResource.sayHelloWithUri=ROLE_PROGRAMMERS">
+           
+        </property>
+    </bean>
+
+	
+	
+    <!--	<bean id="myComponentSecurity" class="org.springframework.security.intercept.method.aopalliance.MethodSecurityInterceptor">-->
+
+<!--    	<property name="authenticationManager" ref="authenticationManager"/>-->
+<!--    	<property name="accessDecisionManager" ref="accessDecisionManager"/>-->
+<!-- 		<property name="objectDefinitionSource" value="com.lifeway.easervices.creditcard.service.CreditCardService.authorize=ROLE_ADMINS"/> -->
+<!--  	</bean>-->
+  	
+  	<bean class="org.springframework.security.authentication.ProviderManager"
+          id="authenticationManager">
+      	<property name="providers">
+        	   <list>
+                 <ref local="authenticationProvider"/>
+            </list>
+      	</property>
+	   </bean>
+
+	
+	   <bean class="org.springframework.security.access.vote.AffirmativeBased"
+          id="accessDecisionManager">
+    	   <property name="decisionVoters">
+            <list>
+            	   <ref bean="roleVoter"/>
+            </list>
+    	   </property>
+	   </bean>
+	   <bean class="org.springframework.security.access.vote.RoleVoter" id="roleVoter"/>	
+</beans>

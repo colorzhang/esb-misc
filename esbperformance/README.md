@@ -1,4 +1,8 @@
-==Mule ESB 3.4 performance testing==
+Mule ESB 3.4 performance testing
+===
+
+Quick Start
+-----------
 
 - Jetty, mule-config.xml
 - NIO http, mule-config-nio.xml
@@ -11,10 +15,11 @@ http://blog.callistaenterprise.se/2013/01/10/mule-esb-nio-http-transport-and-100
 
 
 Enhancements and BUG FIXED:
+--------------------------
 
-# migrate mule config to flow
-# ws-security invalid timestamp: update wss4j to 1.6.10 and xmlsec to 1.5.4
-# change GC to -XX:+UseG1GC on Jdk7u17
+* migrate mule config to flow
+* ws-security invalid timestamp: update wss4j to 1.6.10 and xmlsec to 1.5.4
+* change GC to -XX:+UseG1GC on Jdk7u17
 
- colorzhang@gmail.com
- April 13, 2013
+colorzhang@gmail.com
+April 13, 2013

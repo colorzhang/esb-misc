@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mhttp="http://www.mulesoft.org/schema/mule/http"
+    xmlns:http="http://www.mulesoft.org/schema/mule/nio-http"
+    xmlns:jetty="http://www.mulesoft.org/schema/mule/jetty"
+    xmlns:pattern="http://www.mulesoft.org/schema/mule/pattern"
+    xmlns:mxml="http://www.mulesoft.org/schema/mule/xml"
+    xmlns:sxc="http://www.mulesoft.org/schema/mule/sxc"
+    xmlns:spring="http://www.springframework.org/schema/beans"
+    xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf"
+    xmlns:mule-ss="http://www.mulesoft.org/schema/mule/spring-security"
+    xmlns:ss="http://www.springframework.org/schema/security"
+    xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+    xsi:schemaLocation="
+    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+    http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+    http://www.mulesoft.org/schema/mule/nio-http http://www.mulesoft.org/schema/mule/nio-http/current/mule-nio-http.xsd
+    http://www.mulesoft.org/schema/mule/jetty http://www.mulesoft.org/schema/mule/jetty/current/mule-jetty.xsd
+    http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+    http://www.mulesoft.org/schema/mule/sxc http://www.mulesoft.org/schema/mule/sxc/current/mule-sxc.xsd
+    http://www.mulesoft.org/schema/mule/pattern http://www.mulesoft.org/schema/mule/pattern/current/mule-pattern.xsd
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd
+    http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/schema/mule/spring-security/current/mule-spring-security.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+    http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+
+  <configuration>
+    <default-threading-profile
+        maxThreadsActive="500"
+        maxThreadsIdle="100"
+        poolExhaustedAction="WAIT"/>
+  </configuration>
+  
+  <spring:beans>
+    <spring:bean name="WSProxyService" class="org.mule.module.cxf.WSProxyService">
+      <spring:property name="wsdlFile" value="ProxyWSDL-embedded.wsdl"/>
+    </spring:bean>
+
+    <mule-ss:security-manager>
+      <mule-ss:delegate-security-provider name="memory-dao" delegate-ref="authenticationManager"/>
+    </mule-ss:security-manager>
+
+    <ss:authentication-manager alias="authenticationManager">
+      <ss:authentication-provider>
+        <ss:user-service id="userService">
+          <ss:user name="alice" password="password" authorities="ROLE_ADMIN"/>
+          <ss:user name="bob" password="password" authorities="ROLE_ANON"/>
+        </ss:user-service>
+      </ss:authentication-provider>
+    </ss:authentication-manager>
+  </spring:beans>
+
+  <cxf:ws-security name="outboundConfig">
+    <cxf:ws-config>
+      <cxf:property key="action" value="Timestamp Signature Encrypt"/>
+      <cxf:property key="user" value="bob"/>
+      <cxf:property key="signaturePropFile" value="wssecurity.properties"/>
+      <cxf:property key="encryptionPropFile" value="wssecurity.properties"/>
+      <cxf:property key="encryptionUser" value="Alice"/>
+      <cxf:property key="signatureKeyIdentifier" value="DirectReference"/>
+      <cxf:property key="passwordCallbackClass" value="org.mule.module.cxf.wssec.ServerPasswordCallback"/>
+      <cxf:property key="signatureParts" value="{Element}{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd}Timestamp;{Element}{http://schemas.xmlsoap.org/soap/envelope/}Body"/>
+      <cxf:property key="encryptionParts" value="{Element}{http://www.w3.org/2000/09/xmldsig#}Signature;{Content}{http://schemas.xmlsoap.org/soap/envelope/}Body"/>
+      <!--<cxf:property key="encryptionKeyTransportAlgorithm" value="rsa-1_5"/>-->
+      <cxf:property key="encryptionSymAlgorithm" value="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+    </cxf:ws-config>
+  </cxf:ws-security>
+ 
+  <cxf:ws-security name="inboundConfig">
+    <cxf:ws-config>
+      <cxf:property key="action" value="Timestamp Encrypt Signature"/>
+      <cxf:property key="signaturePropFile" value="wssecurity.properties"/>
+      <cxf:property key="decryptionPropFile" value="wssecurity.properties"/>
+      <cxf:property key="passwordCallbackClass" value="org.mule.module.cxf.wssec.ServerPasswordCallback"/>
+      <cxf:property key="timeToLive" value="2147483647"/>
+    </cxf:ws-config>
+  </cxf:ws-security>
+
+  <mxml:namespace-manager>
+    <mxml:namespace prefix="ns1" uri="http://someuri"/>
+  </mxml:namespace-manager>
+  <mxml:xslt-transformer name="Xsltin" xsl-file="transform_env_reverse.xslt" returnClass="org.mule.module.xml.transformer.DelayedResult"/>
+  <mxml:xslt-transformer name="Xsltout" xsl-file="transform_env.xslt" returnClass="org.mule.module.xml.transformer.DelayedResult"/>
+  <custom-transformer name="XmlToOutputHandler" class="org.mule.module.xml.transformer.XmlToOutputHandler"/>
+
+  <mhttp:connector name="mHttpConnector" keepAlive="true" sendTcpNoDelay="true"/>
+  <endpoint name="RemoteEndpoint" connector-ref="mHttpConnector" address="http://localhost:9000/service/EchoService"/>
+
+  <vm:connector name="vm"/>
+  <vm:endpoint name="ErrorEndpoint" 
+      path="error" 
+      connector-ref="vm" 
+      exchange-pattern="request-response">
+    <response>
+      <message-properties-transformer name="ErrorStatus">
+        <add-message-property key="http.status" value="500"/>
+      </message-properties-transformer>
+      <set-payload value="&lt;soap:Envelope xmlns:soap=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;&gt;
+            &lt;soap:Body&gt;
+              &lt;soap:Fault&gt;
+                &lt;faultcode&gt;soap:Client&lt;/faultcode&gt;
+                &lt;faultstring&gt;Custom error when no route is specified.&lt;/faultstring&gt;
+              &lt;/soap:Fault&gt;
+            &lt;/soap:Body&gt;
+          &lt;/soap:Envelope&gt;"/>
+    </response>
+  </vm:endpoint>
+
+
+  <!-- DIRECT PROXY -->
+  <pattern:web-service-proxy name="DirectProxy"
+      inboundAddress="niohttp://0.0.0.0:8090/service/DirectProxy"
+      outboundEndpoint-ref="RemoteEndpoint" 
+      wsdlFile="ProxyWSDL-embedded.wsdl" />
+
+  <!-- CBR PROXY -->
+  <flow name="CBRProxyService">
+    <http:inbound-endpoint
+          name="InboundCbr" 
+          address="niohttp://0.0.0.0:8090/service/CBRProxy"/>
+
+    <cxf:proxy-service payload="body" wsdlLocation="ProxyWSDL-embedded.wsdl" service="EchoService"
+        namespace="http://services.samples/xsd"/>
+
+    <choice>
+      <when evaluator="xpath" expression="//order[1]/symbol[text()='IBM']">
+        <message-properties-transformer scope="outbound">
+          <add-message-property key="SOAPAction" value="#[header:INBOUND:SOAPAction]"/>
+          <add-message-property key="Content-Type" value="#[header:INBOUND:Content-Type]"/>
+        </message-properties-transformer>
+        <transformer ref="XmlToOutputHandler"/>
+        <outbound-endpoint ref="RemoteEndpoint"/>
+      </when>
+      <otherwise>
+        <outbound-endpoint ref="ErrorEndpoint"/>
+      </otherwise>
+    </choice>
+  </flow>
+
+  <!-- CBR SOAP HEADER PROXY -->
+  <flow name="CBRSOAPHeaderProxy">
+    <http:inbound-endpoint 
+          name="InboundCbrSoapHeader" 
+          address="niohttp://0.0.0.0:8090/service/CBRSOAPHeaderProxy"/>
+
+    <cxf:proxy-service payload="envelope" wsdlLocation="ProxyWSDL-embedded.wsdl" service="EchoService"
+        namespace="http://services.samples/xsd"/>
+
+    <choice>
+      <when evaluator="xpath" expression="//ns1:routing='xadmin;server1;community#1.0##'">
+        <message-properties-transformer scope="outbound">
+          <add-message-property key="SOAPAction" value="#[header:INBOUND:SOAPAction]"/>
+          <add-message-property key="Content-Type" value="#[header:INBOUND:Content-Type]"/>
+        </message-properties-transformer>
+        <transformer ref="XmlToOutputHandler"/>
+        <outbound-endpoint ref="RemoteEndpoint"/>
+      </when>
+      <otherwise>
+        <outbound-endpoint ref="ErrorEndpoint"/>
+      </otherwise>
+    </choice>
+  </flow>
+
+  <!-- SECURITY PROXY -->
+  <flow name="SecureProxy">
+    <http:inbound-endpoint address="niohttp://0.0.0.0:8090/service/SecureProxy"/>
+
+    <cxf:proxy-service payload="body" service="SecureProxy" wsdlLocation="ProxyWSDL-embedded-secure.wsdl" namespace="http://services.samples/xsd">
+      <cxf:ws-security ref="inboundConfig"/>
+    </cxf:proxy-service>
+
+    <outbound-endpoint ref="RemoteEndpoint" exchange-pattern="request-response" transformer-refs="XmlToOutputHandler">
+        <message-properties-transformer scope="outbound">
+            <add-message-property key="SOAPAction" value="#[header:INBOUND:SOAPAction]"/>
+            <add-message-property key="Content-Type" value="#[header:INBOUND:Content-Type]"/>
+        </message-properties-transformer>
+        <cxf:proxy-client payload="body">
+          <cxf:ws-security ref="outboundConfig"/>
+        </cxf:proxy-client>
+    </outbound-endpoint>
+  </flow>
+
+  <!-- CBR Transport Header Proxy -->
+  <flow name="CBRTransportHeaderProxy">
+    <http:inbound-endpoint 
+        name="InboundCbrTransportHeader"
+        address="niohttp://0.0.0.0:8090/service/CBRTransportHeaderProxy"/>
+
+    <cxf:proxy-service payload="body" wsdlLocation="ProxyWSDL-embedded.wsdl" service="EchoService"
+        namespace="http://services.samples/xsd"/>
+
+    <choice>
+      <when evaluator="header" expression="INBOUND:routing=xadmin;server1;community#1.0##">
+        <message-properties-transformer scope="outbound">
+          <add-message-property key="SOAPAction" value="#[header:INBOUND:SOAPAction]"/>
+          <add-message-property key="Content-Type" value="#[header:INBOUND:Content-Type]"/>
+        </message-properties-transformer>
+        <transformer ref="XmlToOutputHandler"/>
+        <outbound-endpoint ref="RemoteEndpoint"/>
+      </when>
+      <otherwise>
+        <outbound-endpoint ref="ErrorEndpoint"/>
+      </otherwise>
+    </choice>
+  </flow>
+
+  <!-- XSLT Proxy -->
+  <flow name="XSLTProxy">
+    <http:inbound-endpoint
+        name="InboundXslt"
+        address="niohttp://0.0.0.0:8090/service/XSLTProxy"/>
+
+    <choice>
+      <when evaluator="header" expression="INBOUND:http.request=/service/XSLTProxy?wsdl">
+        <component>
+          <spring-object bean="WSProxyService" />
+        </component>
+      </when>
+      <otherwise>
+        <outbound-endpoint 
+            ref="RemoteEndpoint"
+            transformer-refs="Xsltin XmlToOutputHandler"
+            responseTransformer-refs="Xsltout XmlToOutputHandler">
+          <message-properties-transformer scope="outbound">
+            <add-message-property key="SOAPAction" value="#[header:INBOUND:SOAPAction]"/>
+            <add-message-property key="Content-Type" value="#[header:INBOUND:Content-Type]"/>
+          </message-properties-transformer>
+        </outbound-endpoint>
+      </otherwise>
+    </choice>
+  </flow>
+
+</mule>
+

@@ -24,7 +24,7 @@
     http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
     http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
 
-  <configuration>
+  <configuration defaultResponseTimeout="20000">
     <default-threading-profile
         maxThreadsActive="1000"
         maxThreadsIdle="100"

@@ -18,10 +18,12 @@ Enhancements and BUG FIXED:
 Reference
 ---------
 
-The not well-known ESB performance suite:\n
+The not well-known ESB performance suite:
+
 http://esbperformance.org/display/comparison/ESB+Performance+Testing+-+Round+6
 
-nio http connector reference:\n
+nio http connector reference:
+
 http://blog.callistaenterprise.se/2013/01/10/mule-esb-nio-http-transport-and-10000-websocket-clients/
 
 colorzhang@gmail.com

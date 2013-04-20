@@ -6,7 +6,7 @@ Quick Start
 Config file
 
 - Jetty, mule-config.xml
-- NIO http, mule-config-nio.xml
+- NIO http, mule-config-nio.xml (download NIO transport or build from mule-3.x-nio-spi, #wrapper.java.additional.4=-Dnio.transport.enabled=true)
 
 Enhancements and BUG FIXED:
 --------------------------

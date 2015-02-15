@@ -19,8 +19,10 @@
         </oauth2:authorization-code-grant-type>
     </http:request-config>
 	
+    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8080"/>
+    
     <flow name="weibo_api_gateway">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="/*" doc:name="HTTP"/>
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/*"/>
 	<http:request config-ref="HTTP_Request_Configuration" path="#[message.inboundProperties.'http.request.path']" method="GET">
 	    <http:request-builder>
 		<http:query-param paramName="access_token" value="#[oauthContext('Token_Manager_Config').accessToken]"/>

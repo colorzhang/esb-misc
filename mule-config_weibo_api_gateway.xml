@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	   xmlns:oauth2="http://www.mulesoft.org/schema/mule/oauth2"
+	   xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	   xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xsi:schemaLocation="
+       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	   http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+	   http://www.mulesoft.org/schema/mule/oauth2 http://www.mulesoft.org/schema/mule/oauth2/current/mule-oauth2.xsd
+	   http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	
+	<oauth2:token-manager-config name="Token_Manager_Config"/>
+	
+    <http:request-config name="HTTP_Request_Configuration" host="api.weibo.com" port="443" protocol="HTTPS" basePath="/2">
+        <oauth2:authorization-code-grant-type clientId="2107305072" clientSecret="xxx" redirectionUrl="http://hybris.local:9001/weibo_callback" tokenManager-ref="Token_Manager_Config">
+            <oauth2:authorization-request authorizationUrl="https://api.weibo.com/oauth2/authorize" localAuthorizationUrl="http://localhost:8082/authorization" scopes="all"/>
+            <oauth2:token-request tokenUrl="https://api.weibo.com/oauth2/access_token" refreshTokenWhen="#[payload.'error' == 'expired_token']"/>
+        </oauth2:authorization-code-grant-type>
+    </http:request-config>
+	
+	<http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8080"/>
+	<flow name="accessROFolders">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/*" doc:name="HTTP"/>
+	    <http:request config-ref="HTTP_Request_Configuration" path="#[message.inboundProperties.'http.request.path']" method="GET">
+			<http:request-builder>
+			    <http:query-param paramName="access_token" value="#[oauthContext('Token_Manager_Config').accessToken]"/>
+				<http:query-params expression="#[message.inboundProperties.'http.query.params']"/>
+			</http:request-builder>
+		</http:request>
+	</flow>
+
+</mule>
